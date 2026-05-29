@@ -43,6 +43,25 @@ npm run build
 
 Playwright가 설정된 뒤에는 핵심 사용자 흐름만 E2E로 검증한다.
 
+## 자동 Git 마무리
+
+사용자가 명시적으로 "커밋하지 마", "푸시하지 마", "PR 만들지 마"라고 제한하지 않으면 작업 완료 후 PR까지 진행한다.
+
+기본 명령:
+
+```bash
+scripts/codex-pr feature/api-build "feat: API 빌드 자동화"
+```
+
+규칙:
+
+- 브랜치는 `feature/api-build`, `fix/login-error`, `chore/dependency-update`처럼 `작업유형/작업내용` 형식으로 만든다.
+- 커밋 메시지는 `feat: 사용자 프로필 API 추가`처럼 prefix를 필수로 쓰고, prefix 뒤 설명은 한글로 작성한다.
+- PR은 항상 만든 브랜치에서 `main`으로 생성한다.
+- `main`에는 직접 커밋하지 않는다.
+- 검증 실패가 있으면 커밋/푸시/PR 전에 수정하거나, 수정 불가 사유를 남기고 멈춘다.
+- 외부 권한 승인이나 GitHub 인증이 필요해 자동 수행이 막히면 필요한 승인만 요청한다.
+
 ## 리뷰 체크리스트
 
 - 화면이 제품 문서의 MVP 범위를 벗어나지 않는가.
