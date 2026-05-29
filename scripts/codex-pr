@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  scripts/codex-pr <branch> "<commit-message>" [pr-title]
+
+Example:
+  scripts/codex-pr feature/api-build "feat: API 빌드 자동화"
+USAGE
+}
+
+branch="${1:-}"
+commit_message="${2:-}"
+pr_title="${3:-}"
+
+if [[ -z "$branch" || -z "$commit_message" ]]; then
+  usage
+  exit 1
+fi
+
+branch_pattern='^(feature|fix|chore|docs|test|refactor|build|ci|hotfix)/[a-z0-9]+(-[a-z0-9]+)*$'
+commit_pattern='^(feat|fix|chore|docs|test|refactor|build|ci|style|perf)(\([a-z0-9-]+\))?: .+'
+
+if [[ ! "$branch" =~ $branch_pattern ]]; then
+  echo "Branch must look like feature/api-build or fix/login-error." >&2
+  exit 1
+fi
+
+if [[ ! "$commit_message" =~ $commit_pattern ]]; then
+  echo "Commit message must look like feat: 한글 설명 or fix(scope): 한글 설명." >&2
+  exit 1
+fi
+
+summary="${commit_message#*: }"
+if [[ ! "$summary" =~ [가-힣] ]]; then
+  echo "Commit summary must include Korean text after the prefix." >&2
+  exit 1
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "GitHub CLI (gh) is required to create a PR." >&2
+  exit 1
+fi
+
+current_branch="$(git branch --show-current)"
+if [[ "$current_branch" != "$branch" ]]; then
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    git switch "$branch"
+  else
+    git switch -c "$branch"
+  fi
+fi
+
+npm run typecheck
+npm run lint
+npm run build
+
+git add -A
+if git diff --cached --quiet; then
+  echo "No staged changes to commit." >&2
+  exit 1
+fi
+
+git commit -m "$commit_message"
+git push -u origin "$branch"
+
+if [[ -z "$pr_title" ]]; then
+  pr_title="$summary"
+fi
+
+body_file="$(mktemp)"
+trap 'rm -f "$body_file"' EXIT
+cat >"$body_file" <<BODY
+## 작업
+
+- $summary
+
+## 검증
+
+- npm run typecheck
+- npm run lint
+- npm run build
+
+## 남은 위험
+
+- 없음
+BODY
+
+gh pr create --base main --head "$branch" --title "$pr_title" --body-file "$body_file"
