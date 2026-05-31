@@ -1,0 +1,25 @@
+{
+  "name": "haenaeyo",
+  "version": "0.1.0",
+  "description": "Haenaeyo agent workflow plugin",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Haenaeyo",
+    "shortDescription": "Use the Haenaeyo agent workflow in Codex.",
+    "longDescription": "Haenaeyo exposes the repository agent roles, workflow, and handoff rules as a local Codex plugin.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Agent workflow",
+      "Repository guidance"
+    ],
+    "defaultPrompt": [
+      "Run the Haenaeyo workflow for this task.",
+      "Use the Haenaeyo Verify Agent.",
+      "Review this change with Haenaeyo agents."
+    ]
+  }
+}
